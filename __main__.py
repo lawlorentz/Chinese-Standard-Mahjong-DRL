@@ -18,7 +18,7 @@ import sys
 
 if __name__ == '__main__':
     model = CNNModel()
-    data_dir = '/data/your_model_name.pkl'
+    data_dir = '/data/3.pkl'
     model.load_state_dict(torch.load(data_dir, map_location = torch.device('cpu')))
     input() # 1
     while True:
