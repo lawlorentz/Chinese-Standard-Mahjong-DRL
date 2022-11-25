@@ -1,6 +1,6 @@
 # 饼万条互换
 import numpy as np
-import json
+import json,os
 
 feature_num=70
 
@@ -164,7 +164,9 @@ def data_augment(index):
     for i in range(act_one_hot.shape[0]):
         act_[i] = np.argmax(act_one_hot[i])
 
-    np.savez('data/cooked_data_without0/%d_augmented_%d.npz' % (index,feature_num),
+    if not os.path.exists('data/augmented_data'):
+        os.makedirs('data/augmented_data')
+    np.savez('data/augmented_data/%d_augmented_%d.npz' % (index,feature_num),
              obs=obs_,
              mask=mask_,
              act=act_)

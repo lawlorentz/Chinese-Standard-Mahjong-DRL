@@ -16,7 +16,7 @@ def parse_args():
     parse.add_argument('--n_gpu', type=int, default=1)  # 3、往参数对象添加参数
     parse.add_argument('--logdir', type=str, default='/code/log/')
     parse.add_argument('--modeldir', type=str, default='/model')
-    parse.add_argument('--load', type=bool, default=False)
+    parse.add_argument('--load', action="store_true")
     parse.add_argument('--checkpoint', type=str, default='/model')
     args = parse.parse_args()  # 4、解析参数对象获得解析对象
     return args

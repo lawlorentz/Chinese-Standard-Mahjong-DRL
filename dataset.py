@@ -27,7 +27,7 @@ class MahjongGBDataset(Dataset):
         for i in range(self.matches):
             if i % 1024 == 0: print('loading', i)
             if augment:
-                d = np.load('data/cooked_data_without0/%d_augmented_%d.npz' % (i + self.begin,feature_num))
+                d = np.load('data/augmented_data/%d_augmented_%d.npz' % (i + self.begin,feature_num))
             else:
                 d = np.load('data/cooked_data_without0/%d.npz' % (i + self.begin))
                 
