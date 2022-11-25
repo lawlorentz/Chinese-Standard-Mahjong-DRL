@@ -8,7 +8,7 @@ if __name__ == '__main__':
         'replay_buffer_episode': 400,
         'model_pool_size': 20,
         'model_pool_name': 'model-pool',
-        'num_actors': 2,
+        'num_actors': 20,
         'episodes_per_actor': 100000,
         'gamma': 0.98,
         'lambda': 0.95,
@@ -17,9 +17,9 @@ if __name__ == '__main__':
         'epochs': 5,
         'clip': 0.2,
         'lr': 1e-4,
-        'value_coeff': 1,
+        'value_coeff': 0.5,
         'entropy_coeff': 0.01,
-        'device': 'cpu',
+        'device': 'cuda',
         'load': True,
         'load_model_dir': 'checkpoint/3_12288.pkl'
     }

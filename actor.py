@@ -82,6 +82,7 @@ class Actor(Process):
             
             # postprocessing episode data for each agent
             for agent_name, agent_data in episode_data.items():
+                # 这是在干嘛？
                 if len(agent_data['action']) < len(agent_data['reward']):
                     agent_data['reward'].pop(0)
                 obs = np.stack(agent_data['state']['observation'])

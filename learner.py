@@ -22,6 +22,7 @@ class Learner(Process):
         # initialize model params
         device = torch.device(self.config['device'])
         model = CNNModel().to(device)
+
         if self.config['load']:
             model.load_state_dict(torch.load(self.config['load_model_dir']))
         
@@ -64,9 +65,10 @@ class Learner(Process):
                 surr1 = ratio * advs
                 surr2 = torch.clamp(ratio, 1 - self.config['clip'], 1 + self.config['clip']) * advs
                 policy_loss = -torch.mean(torch.min(surr1, surr2))
-                value_loss = torch.mean(F.mse_loss(values.unsqueeze(-1), targets))
+                value_loss = torch.mean(F.mse_loss(values, targets.unsqueeze(-1)))
                 entropy_loss = -torch.mean(action_dist.entropy())
-                print(policy_loss.item(), value_loss.item(), entropy_loss.item())
+                print(f'{_}: origin  :',policy_loss.item(), value_loss.item(), entropy_loss.item())
+                print(f'{_}: weighted:',policy_loss.item(), self.config['value_coeff'] *value_loss.item(), self.config['entropy_coeff']*entropy_loss.item())
                 loss = policy_loss + self.config['value_coeff'] * value_loss + self.config['entropy_coeff'] * entropy_loss
                 optimizer.zero_grad()
                 loss.backward()
