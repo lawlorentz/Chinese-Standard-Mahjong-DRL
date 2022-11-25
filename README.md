@@ -4,7 +4,7 @@
 
 需要安装算番库[PyMahjongGB](https://github.com/ailab-pku/PyMahjongGB)
 
-## 介绍
+## 代码介绍
 
 `feature.py`定义71维feature：
 
@@ -27,6 +27,10 @@ OFFSET_OBS = {
     'SHANTEN':70
 }
 ```
+
+`model.py`中的模型：
+
+![image-20221125171741237](README.assets/image-20221125171741237.png)
 
 ## 上手指南
 
