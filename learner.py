@@ -22,6 +22,8 @@ class Learner(Process):
         # initialize model params
         device = torch.device(self.config['device'])
         model = CNNModel().to(device)
+        if self.config['load']:
+            model.load_state_dict(torch.load(self.config['load_model_dir']))
         
         # send to model pool
         model_pool.push(model.state_dict())

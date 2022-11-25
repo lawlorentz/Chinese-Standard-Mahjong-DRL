@@ -69,12 +69,16 @@ class CNNModel(nn.Module):
         self._logits = nn.Sequential(
             nn.Linear(128*4*7+1, 1024),
             nn.ReLU(True),
-            nn.Linear(1024, 235)
+            nn.Linear(1024, 512),
+            nn.ReLU(True),
+            nn.Linear(512, 235)
         )
         self._value_branch = nn.Sequential(
             nn.Linear(128*4*7+1, 1024),
             nn.ReLU(True),
-            nn.Linear(1024, 1)
+            nn.Linear(1024, 512),
+            nn.ReLU(True),
+            nn.Linear(512, 1)
         )
         for m in self.modules():
             if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):

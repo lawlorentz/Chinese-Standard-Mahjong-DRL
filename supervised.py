@@ -17,7 +17,7 @@ def parse_args():
     parse.add_argument('--logdir', type=str, default='/code/log/')
     parse.add_argument('--modeldir', type=str, default='/model')
     parse.add_argument('--load', action="store_true")
-    parse.add_argument('--checkpoint', type=str, default='/model')
+    parse.add_argument('--load_model_dir', type=str, default='checkpoint/2.pkl')
     args = parse.parse_args()  # 4、解析参数对象获得解析对象
     return args
 
@@ -48,15 +48,15 @@ if __name__ == '__main__':
     if not os.path.exists(logdir):
         os.makedirs(logdir)
     timestamp = int(time.time())
-    os.mkdir(logdir + f'checkpoint_CNNModel_{timestamp}')
+    # os.mkdir(logdir + f'checkpoint_CNNModel_{timestamp}')
 
     # Load dataset
     splitRatio = 0.9
     batchSize = 1024*n_gpu
-    trainDataset = MahjongGBDataset(0, 0.9, True)
+    trainDataset = MahjongGBDataset(0, splitRatio, True)
     loader = DataLoader(dataset=trainDataset,
                         batch_size=batchSize, shuffle=True)
-    validateDataset = MahjongGBDataset(0.9, 1, False)
+    validateDataset = MahjongGBDataset(splitRatio, 1, False)
     vloader = DataLoader(dataset=validateDataset,
                          batch_size=batchSize, shuffle=False)
 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     # Load model
     model = CNNModel().to('cuda')
     if load:
-        load_model_dir = args.checkpoint
+        load_model_dir = args.load_model_dir
         model.load_state_dict(torch.load(load_model_dir))
 
     if torch.cuda.device_count() > 1:
@@ -110,11 +110,11 @@ if __name__ == '__main__':
         #            f'checkpoint_CNNModel_{timestamp}/{e}.pkl')
         # print(logdir + f'checkpoint_CNNModel_{timestamp}/{e}.pkl saved')
             if i % 4096 == 0:
-                model_path = modeldir + f'{e}_{i}.pkl'
+                model_path = os.path.join(modeldir,f'{e}_{i}.pkl')
                 torch.save(model.module.state_dict(), model_path)
                 print(model_path+' saved')
 
-        model_path = modeldir + f'{e}.pkl'
+        model_path = os.path.join(modeldir,f'{e}.pkl')
         torch.save(model.module.state_dict(), model_path)
         print(model_path+' saved')
 

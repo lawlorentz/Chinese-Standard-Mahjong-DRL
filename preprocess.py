@@ -42,7 +42,7 @@ with open('data/data.txt', encoding='UTF-8') as f:
         if t[0] == 'Match':
             agents = [FeatureAgent(i) for i in range(4)]
             matchid += 1
-            if i % 2000 == 0:
+            if matchid % 2000 == 0:
                 print('Processing match %d %s...' % (matchid, t[1]))
         elif t[0] == 'Wind':
             for agent in agents:
