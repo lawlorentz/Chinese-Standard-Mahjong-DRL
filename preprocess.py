@@ -1,12 +1,16 @@
 from feature import FeatureAgent
 import numpy as np
-import json
+import json,os
 
 obs = [[] for i in range(4)]
 actions = [[] for i in range(4)]
 matchid = -1
 
 l = []
+
+datapath='data/cooked_data_without0'
+if not os.path.exists(datapath):
+    os.makedirs(datapath)
 
 def saveData():
     # 清洗数据

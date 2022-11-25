@@ -1,1 +1,4 @@
-python3 -u my_supervised_cnnmodel.py --n_gpu 2 > /code/train_log/train.log 2>&1 &
+cp -r /code/* /workspace && cp /dataset/* /workspace/data && cd /workspace
+python3 preprocess.py
+python3 data_augment.py
+python3 -u supervised.py --n_gpu 2 > /code/train_log/train.log 2>&1 &
