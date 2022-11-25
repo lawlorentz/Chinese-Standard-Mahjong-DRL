@@ -20,8 +20,8 @@ if __name__ == '__main__':
         'value_coeff': 1,
         'entropy_coeff': 0.01,
         'device': 'cpu',
-        'load': False,
-        'load_model_dir': 'checkpoint/2.pkl'
+        'load': True,
+        'load_model_dir': 'checkpoint/3_12288.pkl'
     }
     
     replay_buffer = ReplayBuffer(config['replay_buffer_size'], config['replay_buffer_episode'])
