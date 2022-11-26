@@ -1,6 +1,8 @@
 from replay_buffer import ReplayBuffer
 from actor import Actor
 from learner import Learner
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 if __name__ == '__main__':
     config = {
