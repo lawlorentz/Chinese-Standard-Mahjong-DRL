@@ -17,6 +17,8 @@ class Actor(Process):
         self.name = config.get('name', 'Actor-?')
         
     def run(self):
+        torch.set_num_threads(1)
+    
         # connect to model pool
         model_pool = ModelPoolClient(self.config['model_pool_name'])
         
@@ -82,7 +84,6 @@ class Actor(Process):
             
             # postprocessing episode data for each agent
             for agent_name, agent_data in episode_data.items():
-                # 这是在干嘛？
                 if len(agent_data['action']) < len(agent_data['reward']):
                     agent_data['reward'].pop(0)
                 obs = np.stack(agent_data['state']['observation'])

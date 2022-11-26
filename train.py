@@ -1,8 +1,6 @@
 from replay_buffer import ReplayBuffer
 from actor import Actor
 from learner import Learner
-import os
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 if __name__ == '__main__':
     config = {
@@ -10,12 +8,12 @@ if __name__ == '__main__':
         'replay_buffer_episode': 400,
         'model_pool_size': 20,
         'model_pool_name': 'model-pool',
-        'num_actors': 20,
-        'episodes_per_actor': 100000,
+        'num_actors': 24,
+        'episodes_per_actor': 1000,
         'gamma': 0.98,
         'lambda': 0.95,
-        'min_sample': 200,
-        'batch_size': 256,
+        'min_sample': 10000,
+        'batch_size': 2048,
         'epochs': 5,
         'clip': 0.2,
         'lr': 1e-4,
@@ -23,7 +21,9 @@ if __name__ == '__main__':
         'entropy_coeff': 0.01,
         'device': 'cuda',
         'load': True,
-        'load_model_dir': 'checkpoint/3_12288.pkl'
+        'load_model_dir': 'checkpoint/3_12288.pkl',
+        'ckpt_save_interval': 1000,
+        'ckpt_save_path': '/model/'
     }
     
     replay_buffer = ReplayBuffer(config['replay_buffer_size'], config['replay_buffer_episode'])
