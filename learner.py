@@ -97,5 +97,6 @@ class Learner(Process):
                 path = self.config['ckpt_save_path'] + \
                     'model_%d.pt' % iterations
                 torch.save(model.state_dict(), path)
+                print(f'saving {path}')
                 cur_time = t
             iterations += 1
