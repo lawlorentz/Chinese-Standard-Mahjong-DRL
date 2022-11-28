@@ -307,10 +307,10 @@ class MahjongGBEnv():
             self.obs = {i : self.agents[i].request2obs('Player %d Hu' % player) for i in range(4)}
             if isSelfDrawn:
                 self.reward = [-1] * 4
-                self.reward[player] = math.sqrt((8 + fanCnt) * 3 / 2)
+                self.reward[player] = (8 + fanCnt) * 3 / 2
             else:
                 self.reward = [-1] * 4
-                self.reward[player] = math.sqrt((8 * 3 + fanCnt) / 2)
+                self.reward[player] = (8 * 3 + fanCnt) / 2
                 self.reward[self.curPlayer] = -2
             self.done = True
         except Exception as e:

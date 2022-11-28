@@ -81,6 +81,8 @@ class Learner(Process):
                 loss = policy_loss + \
                     self.config['value_coeff'] * value_loss + \
                     self.config['entropy_coeff'] * entropy_loss
+                # print(f'{_}: origin  :',policy_loss.item(), value_loss.item(), entropy_loss.item())
+                print(f'{_}: weighted:',policy_loss.item(), self.config['value_coeff'] *value_loss.item(), self.config['entropy_coeff']*entropy_loss.item())
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
