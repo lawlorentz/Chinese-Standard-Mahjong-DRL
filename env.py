@@ -1,6 +1,7 @@
 from agent import MahjongGBAgent
 
 import random
+import math
 from collections import defaultdict
 
 try:
@@ -305,12 +306,12 @@ class MahjongGBEnv():
             if fanCnt < 8: raise Error('Not Enough Fans')
             self.obs = {i : self.agents[i].request2obs('Player %d Hu' % player) for i in range(4)}
             if isSelfDrawn:
-                self.reward = [-(8 + fanCnt)] * 4
-                self.reward[player] = (8 + fanCnt) * 3
+                self.reward = [-1] * 4
+                self.reward[player] = math.sqrt((8 + fanCnt) * 3 / 2)
             else:
-                self.reward = [-8] * 4
-                self.reward[player] = 8 * 3 + fanCnt
-                self.reward[self.curPlayer] -= fanCnt
+                self.reward = [-1] * 4
+                self.reward[player] = math.sqrt((8 * 3 + fanCnt) / 2)
+                self.reward[self.curPlayer] = -2
             self.done = True
         except Exception as e:
             raise Error(player)
