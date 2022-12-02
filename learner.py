@@ -34,7 +34,8 @@ class Learner(Process):
         model = model.to(device)
 
         # training
-        optimizer = torch.optim.Adam(model.parameters(), lr=self.config['lr'])
+        actor_optimizer = torch.optim.Adam(model.parameters(), lr=self.config['actor_lr'])
+        critic_optimizer = torch.optim.Adam(model._value_branch.parameters(), lr=self.config['critic_lr'])
 
         # wait for initial samples
         while self.replay_buffer.size() < self.config['min_sample']:
@@ -82,10 +83,15 @@ class Learner(Process):
                     self.config['value_coeff'] * value_loss + \
                     self.config['entropy_coeff'] * entropy_loss
                 # print(f'{_}: origin  :',policy_loss.item(), value_loss.item(), entropy_loss.item())
-                print(f'{_}: weighted:',policy_loss.item(), self.config['value_coeff'] *value_loss.item(), self.config['entropy_coeff']*entropy_loss.item(), loss.item())
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+                # print(f'{_}: weighted:',policy_loss.item(), self.config['value_coeff'] *value_loss.item(), self.config['entropy_coeff']*entropy_loss.item(), loss.item())
+                print(f'{_}: origin  :',policy_loss.item(), value_loss.item(), entropy_loss.item())
+                actor_optimizer.zero_grad()
+                critic_optimizer.zero_grad()
+                # loss.backward()
+                policy_loss.backward(retain_graph=True)
+                value_loss.backward()
+                actor_optimizer.step()
+                critic_optimizer.step()
 
             # push new model
             model = model.to('cpu')
