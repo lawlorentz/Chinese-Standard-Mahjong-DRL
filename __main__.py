@@ -9,7 +9,7 @@ import numpy as np
 import torch
 
 def obs2response(model, obs):
-    logits = model({'observation': torch.from_numpy(np.expand_dims(obs['observation'], 0)), 'action_mask': torch.from_numpy(np.expand_dims(obs['action_mask'], 0))})
+    logits,_ = model({'observation': torch.from_numpy(np.expand_dims(obs['observation'], 0)), 'action_mask': torch.from_numpy(np.expand_dims(obs['action_mask'], 0))})
     action = logits.detach().numpy().flatten().argmax()
     response = agent.action2response(action)
     return response
@@ -18,7 +18,8 @@ import sys
 
 if __name__ == '__main__':
     model = CNNModel()
-    data_dir = '/data/3.pkl'
+    data_dir = '/data/model_78789.pt'
+    # data_dir = 'checkpoint/model_78789.pt'
     model.load_state_dict(torch.load(data_dir, map_location = torch.device('cpu')))
     input() # 1
     while True:

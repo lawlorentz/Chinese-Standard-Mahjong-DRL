@@ -64,12 +64,12 @@ class Learner(Process):
             model.train(True)  # Batch Norm training mode
             old_logits, _ = model(states)
             old_probs = F.softmax(old_logits, dim=1).gather(1, actions)
-            old_log_probs = torch.log(old_probs).detach()
+            old_log_probs = torch.log(old_probs+1e-8).detach()
             for _ in range(self.config['epochs']):
                 logits, values = model(states)
                 action_dist = torch.distributions.Categorical(logits=logits)
                 probs = F.softmax(logits, dim=1).gather(1, actions)
-                log_probs = torch.log(probs)
+                log_probs = torch.log(probs+1e-8)
                 ratio = torch.exp(log_probs - old_log_probs)
                 surr1 = ratio * advs
                 surr2 = torch.clamp(
@@ -82,7 +82,7 @@ class Learner(Process):
                     self.config['value_coeff'] * value_loss + \
                     self.config['entropy_coeff'] * entropy_loss
                 # print(f'{_}: origin  :',policy_loss.item(), value_loss.item(), entropy_loss.item())
-                print(f'{_}: weighted:',policy_loss.item(), self.config['value_coeff'] *value_loss.item(), self.config['entropy_coeff']*entropy_loss.item())
+                print(f'{_}: weighted:',policy_loss.item(), self.config['value_coeff'] *value_loss.item(), self.config['entropy_coeff']*entropy_loss.item(), loss.item())
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
