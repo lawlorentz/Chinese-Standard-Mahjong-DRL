@@ -20,16 +20,24 @@ class Actor(Process):
         self.baseline = baseline
         
     def run(self):
+        torch.set_num_threads(1)
+    
         # connect to model pool
-        model_pool = ModelPoolClient(self.config['model_pool_name'])
+        actor_model_pool = ModelPoolClient(self.config['actor_model_pool_name'])
+        critic_model_pool = ModelPoolClient(self.config['critic_model_pool_name'])
         
         # create network model
-        model = CNNModel()
+        actor_model = CNNModel()
+        critic_model = CNNModel()
         
         # load initial model
-        version = model_pool.get_latest_model()
-        state_dict = model_pool.load_model(version)
-        model.load_state_dict(state_dict)
+        actor_version = actor_model_pool.get_latest_model()
+        actor_state_dict = actor_model_pool.load_model(actor_version)
+        actor_model.load_state_dict(actor_state_dict)
+
+        critic_version = critic_model_pool.get_latest_model()
+        critic_state_dict = critic_model_pool.load_model(critic_version)
+        critic_model.load_state_dict(critic_state_dict)
         
         # collect data
         env = MahjongGBEnv(config = {'agent_clz': FeatureAgent})

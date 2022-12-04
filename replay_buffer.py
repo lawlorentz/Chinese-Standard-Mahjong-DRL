@@ -6,6 +6,8 @@ import random
 class ReplayBuffer:
 
     def __init__(self, capacity, episode):
+        # capacity = config['replay_buffer_size']
+        # episode = config['replay_buffer_episode'])
         self.queue = Queue(episode)
         self.capacity = capacity
         self.buffer = None
