@@ -29,7 +29,8 @@ if __name__ == '__main__':
     actors = []
     for i in range(config['num_actors']):
         config['name'] = 'Actor-%d' % i
-        actor = Actor(config, replay_buffer)
+        actor = Actor(config, replay_buffer, baseline="./checkpoint/3_12288.pkl")
+        # actor = Actor(config, replay_buffer)
         actors.append(actor)
     learner = Learner(config, replay_buffer)
     
