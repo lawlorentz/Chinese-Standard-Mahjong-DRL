@@ -22,8 +22,7 @@ if __name__ == '__main__':
         'replay_buffer_size': 50000,
         'replay_buffer_episode': 400,
         'model_pool_size': 9,
-        'actor_model_pool_name': 'actor_model-pool',
-        'critic_model_pool_name': 'critic_model-pool',
+        'model_pool_name': 'model-pool',
         'num_actors': 24,
         'episodes_per_actor': 1000000,
         'gamma': 0.98,
@@ -63,7 +62,7 @@ if __name__ == '__main__':
     for actor in actors:
         actor.start()
     learner.start()
-
+    print("Create task finish !")
     for actor in actors:
         actor.join()
     learner.terminate()

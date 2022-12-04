@@ -38,7 +38,6 @@ class ModelPoolClient:
         while True:
             try:
                 self.shared_model_list = ShareableList(name = name)
-                self.shared_model_list[-1]
                 break
             except:
                 time.sleep(0.1)
