@@ -1,6 +1,7 @@
 from replay_buffer import ReplayBuffer
 from actor import Actor
 from learner import Learner
+from value_learner import ValueLearner
 import argparse
 import os
 
@@ -22,9 +23,8 @@ if __name__ == '__main__':
         'replay_buffer_size': 50000,
         'replay_buffer_episode': 400,
         'model_pool_size': 9,
-        'actor_model_pool_name': 'actor_model-pool',
-        'critic_model_pool_name': 'critic_model-pool',
-        'num_actors': 24,
+        'model_pool_name': 'model-pool',
+        'num_actors': 8,
         'episodes_per_actor': 1000000,
         'gamma': 0.98,
         'lambda': 0.95,
@@ -36,12 +36,13 @@ if __name__ == '__main__':
         'actor_lr': 1e-4,
         'critic_lr': 1e-3,
         'value_coeff': 0.5,
-        'entropy_coeff': 0.1,
+        'entropy_coeff': 0.01,
         'device': 'cuda',
         'load': True,
-        'load_model_dir': 'checkpoint/3_12288.pkl',
+        'load_model_dir': 'checkpoint/value_10388.pt',
         'ckpt_save_interval': 1800,
-        'ckpt_save_path': '/model/'
+        'ckpt_save_path': '/model/',
+        'train_value': False
     }
 
     if not os.path.exists(config['ckpt_save_path']):
@@ -55,14 +56,19 @@ if __name__ == '__main__':
     actors = []
     for i in range(config['num_actors']):
         config['name'] = 'Actor-%d' % i
-        actor = Actor(config, replay_buffer)
+        actor = Actor(config, replay_buffer, baseline="./checkpoint/value_10388.pt")
+        # actor = Actor(config, replay_buffer)
         actors.append(actor)
-    learner = Learner(config, replay_buffer)
+    
+    if config['train_value']:
+        learner = ValueLearner(config, replay_buffer)
+    else:
+        learner = Learner(config, replay_buffer)
 
     for actor in actors:
         actor.start()
     learner.start()
-
+    print("Create task finish !")
     for actor in actors:
         actor.join()
     learner.terminate()

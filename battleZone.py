@@ -63,8 +63,8 @@ def run(models: list, device, total_episode=100, record_data=False):
                 if record_data:
                     agent_data['action'].append(actions[agent_name])
                     agent_data['value'].append(values[agent_name])
-                    if agent_name == 'player_1':
-                        print(entropy)
+                    # if agent_name == 'player_1':
+                    #     print(entropy)
             # interact with env
             next_obs, rewards, done = env.step(actions)
             if done:
@@ -113,12 +113,12 @@ def main():
     models = [CNNModel(), CNNModel(), CNNModel(), CNNModel()]
     models[0].load_state_dict(torch.load("checkpoint/3_12288.pkl",map_location=device))
     models[1].load_state_dict(torch.load("checkpoint/3_12288.pkl",map_location=device))
-    models[2].load_state_dict(torch.load("checkpoint/model_78789.pt",map_location=device))
-    models[3].load_state_dict(torch.load("checkpoint/model_78789.pt",map_location=device))
+    models[2].load_state_dict(torch.load("checkpoint/model_13379.pt",map_location=device))
+    models[3].load_state_dict(torch.load("checkpoint/model_13379.pt",map_location=device))
     for i in range(4):
         models[i].to(device)
 
-    run(models, device, total_episode=1, record_data=True)
+    run(models, device, total_episode=100, record_data=True)
 
 if __name__ == "__main__":
     main()

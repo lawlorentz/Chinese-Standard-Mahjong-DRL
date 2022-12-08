@@ -8,10 +8,10 @@ from replay_buffer import ReplayBuffer
 from model_pool import ModelPoolServer
 from model import CNNModel
 
-class Learner(Process):
+class ValueLearner(Process):
     
     def __init__(self, config, replay_buffer):
-        super(Learner, self).__init__()
+        super(ValueLearner, self).__init__()
         self.replay_buffer = replay_buffer
         self.config = config
     
@@ -28,7 +28,12 @@ class Learner(Process):
         # send to model pool
         model_pool.push(model.state_dict()) # push cpu-only tensor to model_pool
         model = model.to(device)
-        
+        # Freeze parameters, only left value branch
+        for name, parameter in model.named_parameters():
+            if '_value_branch' not in name:
+                parameter.requires_grad = False
+        print(model.state_dict)
+
         # training
         optimizer = torch.optim.Adam(model.parameters(), lr = self.config['lr'])
         
@@ -49,46 +54,27 @@ class Learner(Process):
                 'observation': obs,
                 'action_mask': mask
             }
-            actions = torch.tensor(batch['action']).unsqueeze(-1).to(device)
-            advs = torch.tensor(batch['adv']).to(device)
             targets = torch.tensor(batch['target']).to(device)
             
             sample_in = self.replay_buffer.stats['sample_in']
             sample_out = self.replay_buffer.stats['sample_out']
             print(
                 f'Iteration {iterations}, replay buffer in {sample_in} out {sample_out}, ratio: {sample_out/sample_in}')            
-            # calculate PPO loss
+
+            sum_loss = 0.0
             model.train(True) # Batch Norm training mode
-            old_logits, _ = model(states)
-            old_probs = F.softmax(old_logits, dim = 1).gather(1, actions)
-            old_log_probs = torch.log(old_probs + 1e-8).detach()
-            avg_policy_loss, avg_value_loss, avg_entropy_loss = 0, 0, 0
-            for _ in range(self.config['epochs']):
+            for epo_id in range(self.config['epochs']):
                 logits, values = model(states)
-                all_probs = F.softmax(logits, dim=1)
-                action_dist = torch.distributions.Categorical(probs = all_probs)
-
-                probs = all_probs.gather(1, actions)
-                log_probs = torch.log(probs + 1e-8)
-                ratio = torch.exp(log_probs - old_log_probs)
-                surr1 = ratio * advs
-                surr2 = torch.clamp(ratio, 1 - self.config['clip'], 1 + self.config['clip']) * advs
-                policy_loss = -torch.mean(torch.min(surr1, surr2))
                 value_loss = torch.mean(F.mse_loss(values.squeeze(-1), targets))
-                entropy_loss = -torch.mean(action_dist.entropy())
-                loss = policy_loss + self.config['value_coeff'] * value_loss + self.config['entropy_coeff'] * entropy_loss
-
-                avg_policy_loss += policy_loss.item()
-                avg_value_loss += value_loss.item()
-                avg_entropy_loss += entropy_loss.item()
+                loss = value_loss
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
 
-            avg_policy_loss /= self.config['epochs']
-            avg_value_loss /= self.config['epochs']
-            avg_entropy_loss /= self.config['epochs']
-            print(f'Iter: {iterations}, avg_policy_loss: {avg_policy_loss}, avg_value_loss: {avg_value_loss}, avg_entropy_loss: {avg_entropy_loss}')
+                # print(f"Iter: {iterations}, epoch: {epo_id}, loss: {loss.item()}")
+                sum_loss += loss.item()
+            print(f"Iter: {iterations} avg_loss: {sum_loss / self.config['epochs']}")
+
             # push new model
             model = model.to('cpu')
             model_pool.push(model.state_dict()) # push cpu-only tensor to model_pool

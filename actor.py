@@ -1,6 +1,7 @@
 from multiprocessing import Process
 import numpy as np
 import torch
+import random
 
 from replay_buffer import ReplayBuffer
 from model_pool import ModelPoolClient
@@ -10,49 +11,51 @@ from model import CNNModel
 
 class Actor(Process):
     
-    def __init__(self, config, replay_buffer):
+    def __init__(self, config, replay_buffer, baseline = None):
         super(Actor, self).__init__()
         self.replay_buffer = replay_buffer
         self.config = config
         self.name = config.get('name', 'Actor-?')
+
+        self.baseline = baseline
         
     def run(self):
         torch.set_num_threads(1)
-    
         # connect to model pool
-        actor_model_pool = ModelPoolClient(self.config['actor_model_pool_name'])
-        critic_model_pool = ModelPoolClient(self.config['critic_model_pool_name'])
+        model_pool = ModelPoolClient(self.config['model_pool_name'])
         
         # create network model
-        actor_model = CNNModel()
-        critic_model = CNNModel()
+        model = CNNModel()
         
         # load initial model
-        actor_version = actor_model_pool.get_latest_model()
-        actor_state_dict = actor_model_pool.load_model(actor_version)
-        actor_model.load_state_dict(actor_state_dict)
-
-        critic_version = critic_model_pool.get_latest_model()
-        critic_state_dict = critic_model_pool.load_model(critic_version)
-        critic_model.load_state_dict(critic_state_dict)
+        version = model_pool.get_latest_model()
+        state_dict = model_pool.load_model(version)
+        model.load_state_dict(state_dict)
         
         # collect data
         env = MahjongGBEnv(config = {'agent_clz': FeatureAgent})
-        # policies = {player : model for player in env.agent_names} # all four players use the latest model
+        if self.baseline:
+            base_model = CNNModel()
+            base_model.load_state_dict(torch.load(self.baseline))
+            policies = {player : model for player in env.agent_names}
+            
+        else:
+            policies = {player : model for player in env.agent_names} # all four players use the latest model
         
         for episode in range(self.config['episodes_per_actor']):
             # update model
-            actor_latest = actor_model_pool.get_latest_model()
-            if actor_latest['id'] > actor_version['id']:
-                actor_state_dict = actor_model_pool.load_model(actor_latest)
-                actor_model.load_state_dict(actor_state_dict)
-                actor_version = actor_latest
-            
-            critic_latest = critic_model_pool.get_latest_model()
-            if critic_latest['id'] > critic_version['id']:
-                critic_state_dict = critic_model_pool.load_model(critic_latest)
-                critic_model.load_state_dict(critic_state_dict)
-                critic_version = critic_latest
+            latest = model_pool.get_latest_model()
+            if latest['id'] > version['id']:
+                state_dict = model_pool.load_model(latest)
+                model.load_state_dict(state_dict)
+                version = latest
+            if self.baseline:
+                for player in env.agent_names:
+                    policies[player] = model
+                base_player = env.agent_names[random.randint(0, len(env.agent_names)-1)]
+                policies[base_player] = base_model
+            else:
+                base_player = None
             
             # run one episode and collect data
             obs = env.reset()
@@ -77,11 +80,9 @@ class Actor(Process):
                     agent_data['state']['action_mask'].append(state['action_mask'])
                     state['observation'] = torch.tensor(state['observation'], dtype = torch.float).unsqueeze(0)
                     state['action_mask'] = torch.tensor(state['action_mask'], dtype = torch.float).unsqueeze(0)
-                    actor_model.train(False) # Batch Norm inference mode
-                    critic_model.train(False) # Batch Norm inference mode
+                    policies[agent_name].train(False) # Batch Norm inference mode
                     with torch.no_grad():
-                        logits = actor_model(state)[0]
-                        value = critic_model(state)[1]
+                        logits, value = policies[agent_name](state)
                         action_dist = torch.distributions.Categorical(logits = logits)
                         action = action_dist.sample().item()
                         value = value.item()
@@ -94,10 +95,13 @@ class Actor(Process):
                 for agent_name in rewards:
                     episode_data[agent_name]['reward'].append(rewards[agent_name])
                 obs = next_obs
-            print(self.name, 'Episode', episode, 'Actor_Model', actor_latest['id'],'Critic_Model', critic_latest['id'], 'Reward', rewards)
+            print(self.name, 'Episode', episode, 'Model', latest['id'], 'Reward', rewards, 'baseline: ', base_player)
             
             # postprocessing episode data for each agent
             for agent_name, agent_data in episode_data.items():
+                if self.baseline and agent_name == base_player:
+                    continue
+
                 if len(agent_data['action']) < len(agent_data['reward']):
                     agent_data['reward'].pop(0)
                 obs = np.stack(agent_data['state']['observation'])
